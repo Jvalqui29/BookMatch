@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { LatLngExpression } from 'leaflet';
+import { LatLngExpression, Icon } from 'leaflet';
 import { User, Book, MapPin } from 'lucide-react';
 import { useLocation } from '../context/LocationContext.tsx';
 import { theme } from '../styles/theme.ts';
@@ -124,7 +124,14 @@ const mockUsers = [
 
 const MapScreen: React.FC = () => {
   const { currentLocation, loading } = useLocation();
-  const [mapCenter, setMapCenter] = useState<LatLngExpression>([40.4168, -3.7038]); // Madrid por defecto
+  const [mapCenter, setMapCenter] = useState<LatLngExpression>([-33.4489, -70.6693]); // Santiago por defecto
+
+  const bookIcon = new Icon({
+    iconUrl: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4d6.png',
+    iconSize: [28, 28],
+    iconAnchor: [14, 28],
+    popupAnchor: [0, -24]
+  });
 
   useEffect(() => {
     if (currentLocation) {
@@ -151,7 +158,7 @@ const MapScreen: React.FC = () => {
         <Title>Lectores Cercanos</Title>
         <LocationInfo>
           <MapPin size={16} />
-          <span>{currentLocation?.address || 'Madrid, España'}</span>
+          <span>{currentLocation?.address || 'Santiago, Chile'}</span>
         </LocationInfo>
       </Header>
 
@@ -168,7 +175,7 @@ const MapScreen: React.FC = () => {
           
           {/* Marcador del usuario actual */}
           {currentLocation && (
-            <Marker position={[currentLocation.latitude, currentLocation.longitude]}>
+            <Marker position={[currentLocation.latitude, currentLocation.longitude]} icon={bookIcon}>
               <Popup>
                 <PopupContent>
                   <UserName>Tu ubicación</UserName>
@@ -183,7 +190,7 @@ const MapScreen: React.FC = () => {
 
           {/* Marcadores de otros usuarios */}
           {mockUsers.map((user) => (
-            <Marker key={user.id} position={[user.location.lat, user.location.lng]}>
+            <Marker key={user.id} position={[user.location.lat, user.location.lng]} icon={bookIcon}>
               <Popup>
                 <PopupContent>
                   <UserName>{user.name}</UserName>

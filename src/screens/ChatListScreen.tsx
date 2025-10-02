@@ -12,9 +12,10 @@ const Container = styled.div`
 `;
 
 const Header = styled.div`
-  background: white;
+  background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.primaryDark} 100%);
   padding: 1rem;
   border-bottom: 1px solid ${theme.colors.border};
+  color: white;
 `;
 
 const Title = styled.h1`
@@ -39,10 +40,10 @@ const SearchIcon = styled.div`
 const SearchInput = styled.input`
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 3rem;
-  border: 1px solid ${theme.colors.border};
+  border: 1px solid ${theme.colors.primaryDark};
   border-radius: ${theme.borderRadius.md};
   font-size: 1rem;
-  background: ${theme.colors.background};
+  background: rgba(255,255,255,0.9);
 
   &:focus {
     outline: none;
@@ -66,7 +67,6 @@ const ChatItem = styled.div`
   padding: 1rem;
   border-bottom: 1px solid ${theme.colors.border};
   background: white;
-  cursor: pointer;
   transition: background-color 0.2s ease;
 
   &:hover {
@@ -74,11 +74,37 @@ const ChatItem = styled.div`
   }
 `;
 
+const ChatContent = styled.div`
+  display: flex;
+  align-items: center;
+  flex: 1;
+  cursor: pointer;
+`;
+
+const ProfileButton = styled.button`
+  background: ${theme.colors.primary}15;
+  border: 1px solid ${theme.colors.primary}30;
+  color: ${theme.colors.primary};
+  padding: 0.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 1rem;
+  
+  &:hover {
+    background: ${theme.colors.primary}25;
+    transform: scale(1.1);
+  }
+`;
+
 const Avatar = styled.div`
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: ${theme.colors.primary};
+  background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.primaryLight} 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -95,7 +121,7 @@ const ChatInfo = styled.div`
 
 const ChatHeader = styled.div`
   display: flex;
-  justify-content: between;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 0.25rem;
 `;
@@ -163,6 +189,7 @@ const mockChats = [
   {
     id: '1',
     user: {
+      id: 'user1',
       name: 'María González',
       avatar: 'MG'
     },
@@ -174,6 +201,7 @@ const mockChats = [
   {
     id: '2',
     user: {
+      id: 'user2',
       name: 'Carlos Ruiz',
       avatar: 'CR'
     },
@@ -185,6 +213,7 @@ const mockChats = [
   {
     id: '3',
     user: {
+      id: 'user3',
       name: 'Ana López',
       avatar: 'AL'
     },
@@ -209,6 +238,11 @@ const ChatListScreen: React.FC = () => {
     navigate(`/chat/${chatId}`);
   };
 
+  const handleProfileClick = (e: React.MouseEvent, userId: string) => {
+    e.stopPropagation(); // Evitar que se active el chat
+    navigate(`/profile/${userId}`);
+  };
+
   return (
     <Container>
       <Header>
@@ -229,21 +263,26 @@ const ChatListScreen: React.FC = () => {
       <ChatsList>
         {filteredChats.length > 0 ? (
           filteredChats.map((chat) => (
-            <ChatItem key={chat.id} onClick={() => handleChatClick(chat.id)}>
-              <Avatar>
-                <User size={24} />
-              </Avatar>
-              <ChatInfo>
-                <ChatHeader>
-                  <UserName>{chat.user.name}</UserName>
-                  <TimeStamp>
-                    <Clock size={12} />
-                    {chat.timestamp}
-                  </TimeStamp>
-                </ChatHeader>
-                <LastMessage>{chat.lastMessage}</LastMessage>
-                <BookTitle>{chat.book}</BookTitle>
-              </ChatInfo>
+            <ChatItem key={chat.id}>
+              <ChatContent onClick={() => handleChatClick(chat.id)}>
+                <Avatar>
+                  <User size={24} />
+                </Avatar>
+                <ChatInfo>
+                  <ChatHeader>
+                    <UserName>{chat.user.name}</UserName>
+                    <TimeStamp>
+                      <Clock size={12} />
+                      {chat.timestamp}
+                    </TimeStamp>
+                  </ChatHeader>
+                  <LastMessage>{chat.lastMessage}</LastMessage>
+                  <BookTitle>{chat.book}</BookTitle>
+                </ChatInfo>
+              </ChatContent>
+              <ProfileButton onClick={(e) => handleProfileClick(e, chat.user.id)}>
+                <User size={16} />
+              </ProfileButton>
             </ChatItem>
           ))
         ) : searchQuery ? (

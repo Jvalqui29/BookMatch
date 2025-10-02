@@ -12,25 +12,26 @@ const Container = styled.div`
 `;
 
 const Header = styled.div`
-  background: white;
+  background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.primaryDark} 100%);
   padding: 1rem;
   border-bottom: 1px solid ${theme.colors.border};
   display: flex;
   align-items: center;
   gap: 1rem;
+  color: white;
 `;
 
 const BackButton = styled.button`
-  background: none;
+  background: rgba(255,255,255,0.15);
   border: none;
-  color: ${theme.colors.primary};
+  color: white;
   cursor: pointer;
   padding: 0.5rem;
   border-radius: ${theme.borderRadius.sm};
   transition: background-color 0.2s ease;
 
   &:hover {
-    background: ${theme.colors.primary}20;
+    background: rgba(255,255,255,0.25);
   }
 `;
 
@@ -76,18 +77,16 @@ const ActionButtons = styled.div`
 `;
 
 const ActionButton = styled.button`
-  background: none;
-  border: 1px solid ${theme.colors.border};
-  color: ${theme.colors.textSecondary};
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
   cursor: pointer;
   padding: 0.5rem;
   border-radius: ${theme.borderRadius.sm};
   transition: all 0.2s ease;
 
   &:hover {
-    background: ${theme.colors.background};
-    color: ${theme.colors.primary};
-    border-color: ${theme.colors.primary};
+    background: rgba(255,255,255,0.25);
   }
 `;
 

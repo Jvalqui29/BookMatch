@@ -1,37 +1,125 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Heart, X, Star, MapPin, User } from 'lucide-react';
-import { theme } from '../styles/theme.ts';
+import { Heart, X, Star, MapPin, User, Search } from 'lucide-react';
+import { theme, getThemeColors } from '../styles/theme.ts';
+import { useThemeMode } from '../context/ThemeContext.tsx';
 
-const Container = styled.div`
+const Container = styled.div<{ $isDark: boolean }>`
   min-height: 100vh;
-  background: ${theme.colors.background};
+  background: ${props => props.$isDark ? theme.colors.dark.backgroundGradient : theme.colors.light.backgroundGradient};
   padding: 1rem;
   display: flex;
   flex-direction: column;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(circle at 20% 80%, ${theme.colors.primary}08 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, ${theme.colors.secondary}06 0%, transparent 50%);
+    pointer-events: none;
+  }
 `;
 
 const Header = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding: 0 0.5rem;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: ${theme.spacing.lg};
+  background: ${theme.colors.surfaceGlass};
+  backdrop-filter: blur(20px);
+  border-radius: ${theme.borderRadius.xl};
+  border: 1px solid ${theme.colors.borderLight};
+  position: relative;
+  z-index: 10;
+  box-shadow: ${theme.shadows.lg};
 `;
 
-const Title = styled.h1`
-  color: ${theme.colors.text};
-  font-size: 1.5rem;
-  font-weight: 600;
+const SearchContainer = styled.div`
+  position: relative;
+  width: 100%;
 `;
 
-const UserInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+const SearchInput = styled.input<{ $isDark: boolean }>`
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  border: 2px solid ${props => props.$isDark ? theme.colors.dark.border : theme.colors.light.border};
+  border-radius: ${theme.borderRadius.lg};
+  background: ${props => props.$isDark ? theme.colors.dark.input : theme.colors.light.input};
+  color: ${props => props.$isDark ? theme.colors.dark.inputText : theme.colors.light.inputText};
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  
+  &::placeholder {
+    color: ${props => props.$isDark ? theme.colors.dark.placeholder : theme.colors.light.placeholder};
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: ${theme.colors.primary};
+    box-shadow: 0 0 0 4px ${theme.colors.primary}20;
+    background: ${props => props.$isDark ? theme.colors.dark.surfaceElevated : theme.colors.light.surfaceElevated};
+  }
+`;
+
+const SearchIcon = styled.div`
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
   color: ${theme.colors.textSecondary};
-  font-size: 0.9rem;
+  pointer-events: none;
 `;
+
+const FilterTabs = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+`;
+
+const FilterTab = styled.button<{ $active?: boolean }>`
+  padding: 0.5rem 1rem;
+  border: 1px solid ${props => props.$active ? theme.colors.primary : theme.colors.borderLight};
+  border-radius: ${theme.borderRadius.full};
+  background: ${props => props.$active ? theme.colors.primary : 'transparent'};
+  color: ${props => props.$active ? 'white' : theme.colors.textSecondary};
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  
+  &:hover {
+    background: ${props => props.$active ? theme.colors.primaryDark : theme.colors.backgroundGradient};
+    border-color: ${theme.colors.primary};
+  }
+`;
+
+const SearchHint = styled.div`
+  text-align: center;
+  padding: 2rem;
+  color: ${theme.colors.textSecondary};
+  
+  h3 {
+    color: ${theme.colors.text};
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+  }
+  
+  p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+`;
+
+
 
 const SwipeContainer = styled.div`
   flex: 1;
@@ -45,32 +133,79 @@ const SwipeContainer = styled.div`
 `;
 
 const BookCard = styled.div`
-  background: white;
-  border-radius: ${theme.borderRadius.lg};
-  box-shadow: ${theme.shadows.lg};
+  background: ${theme.colors.surface};
+  border-radius: ${theme.borderRadius['2xl']};
+  box-shadow: ${theme.shadows.xl};
+  border: 1px solid ${theme.colors.borderLight};
   width: 100%;
-  max-width: 350px;
+  max-width: 380px;
   overflow: hidden;
   cursor: grab;
-  transition: transform 0.2s ease;
+  transition: ${theme.transitions.spring};
+  position: relative;
 
   &:hover {
-    transform: translateY(-5px);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: ${theme.shadows['2xl']};
+    border-color: ${theme.colors.primary}40;
   }
 
   &:active {
     cursor: grabbing;
+    transform: translateY(-4px) scale(1.01);
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    background: ${theme.colors.primaryGradient};
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    transition: ${theme.transitions.normal};
+  }
+  
+  &:hover::before {
+    opacity: 0.2;
   }
 `;
 
 const BookImage = styled.div`
-  height: 300px;
-  background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.primaryLight} 100%);
+  height: 320px;
+  background: ${theme.colors.primaryGradient};
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 4rem;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      linear-gradient(45deg, transparent 35%, rgba(255,255,255,0.05) 50%, transparent 65%);
+    background-size: 20px 20px;
+  }
 `;
 
 const BookInfo = styled.div`
@@ -98,12 +233,16 @@ const BookDetails = styled.div`
 `;
 
 const BookTag = styled.span`
-  background: ${theme.colors.primary}20;
+  background: linear-gradient(135deg, ${theme.colors.primary}15, ${theme.colors.secondary}10);
   color: ${theme.colors.primary};
-  padding: 0.25rem 0.75rem;
-  border-radius: ${theme.borderRadius.full};
-  font-size: 0.8rem;
-  font-weight: 500;
+  padding: ${theme.spacing.xs} ${theme.spacing.md};
+  border-radius: ${theme.borderRadius.pill};
+  font-size: 0.85rem;
+  font-weight: ${theme.fonts.medium.fontWeight};
+  border: 1px solid ${theme.colors.primary}25;
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.xs};
 `;
 
 const OwnerInfo = styled.div`
@@ -158,22 +297,49 @@ const ActionButton = styled.button<{ $variant: 'reject' | 'like' }>`
   height: 60px;
   border-radius: 50%;
   border: none;
-  background: ${props => props.$variant === 'like' ? theme.colors.success : theme.colors.error};
+  background: ${props => props.$variant === 'like' 
+    ? `linear-gradient(135deg, ${theme.colors.success} 0%, #51CF66 100%)`
+    : `linear-gradient(135deg, ${theme.colors.error} 0%, #FF6B6B 100%)`
+  };
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: ${theme.shadows.md};
+  transition: ${theme.transitions.spring};
+  box-shadow: ${theme.shadows.lg};
+  position: relative;
+  overflow: hidden;
 
   &:hover {
-    transform: scale(1.1);
-    box-shadow: ${theme.shadows.lg};
+    transform: scale(1.1) ${props => props.$variant === 'like' ? 'rotate(5deg)' : 'rotate(-5deg)'};
+    box-shadow: ${theme.shadows.xl};
   }
 
   &:active {
     transform: scale(0.95);
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    transform: scale(0);
+    opacity: 0;
+    transition: ${theme.transitions.fast};
+  }
+  
+  &:active::before {
+    transform: scale(1);
+    opacity: 1;
+  }
+  
+  svg {
+    width: 24px;
+    height: 24px;
+    z-index: 1;
   }
 `;
 
@@ -227,8 +393,14 @@ const mockBooks = [
 ];
 
 const SwipeScreen: React.FC = () => {
+  const { theme: currentTheme } = useThemeMode();
+  const isDark = currentTheme === 'dark';
   const [currentBookIndex, setCurrentBookIndex] = useState(0);
   const [books] = useState(mockBooks);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState('Todos');
+
+  const filters = ['Todos', 'Ficción', 'Fantasía', 'Historia', 'Ciencia', 'Romance'];
 
   const currentBook = books[currentBookIndex];
 
@@ -243,17 +415,42 @@ const SwipeScreen: React.FC = () => {
   };
 
   return (
-    <Container>
+    <Container $isDark={isDark}>
       <Header>
-        <Title>Descubrir</Title>
-        <UserInfo>
-          <MapPin size={16} />
-          <span>Madrid, España</span>
-        </UserInfo>
+        <SearchContainer>
+          <SearchIcon>
+            <Search size={20} />
+          </SearchIcon>
+          <SearchInput 
+            $isDark={isDark}
+            placeholder="Buscar libros, autores, géneros..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </SearchContainer>
+        
+        <FilterTabs>
+          {filters.map(filter => (
+            <FilterTab 
+              key={filter}
+              $active={activeFilter === filter}
+              onClick={() => setActiveFilter(filter)}
+            >
+              {filter}
+            </FilterTab>
+          ))}
+        </FilterTabs>
       </Header>
 
-      <SwipeContainer>
-        {currentBook ? (
+      {searchQuery ? (
+        <SearchHint>
+          <h3>🔍 Buscando: "{searchQuery}"</h3>
+          <p>Estamos buscando libros que coincidan con tu búsqueda. 
+          ¡Pronto tendrás resultados personalizados!</p>
+        </SearchHint>
+      ) : (
+        <SwipeContainer>
+          {currentBook ? (
           <BookCard className="fade-in">
             <BookImage>
               {currentBook.coverImage}
@@ -288,9 +485,10 @@ const SwipeScreen: React.FC = () => {
             <p>Vuelve más tarde para descubrir nuevos libros</p>
           </EmptyState>
         )}
-      </SwipeContainer>
+        </SwipeContainer>
+      )}
 
-      {currentBook && (
+      {!searchQuery && currentBook && (
         <ActionButtons>
           <ActionButton $variant="reject" onClick={handleReject}>
             <X size={24} />

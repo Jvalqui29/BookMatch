@@ -8,30 +8,98 @@ import { theme } from '../../styles/theme.ts';
 
 const Container = styled.div`
   min-height: 100vh;
-  background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.primaryDark} 100%);
+  background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.primaryDark} 50%, ${theme.colors.primaryLight} 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 8s ease infinite;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+    animation: float 20s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 60% 40%, rgba(255, 255, 255, 0.08) 0%, transparent 60%);
+    animation: float 15s ease-in-out infinite reverse;
+    pointer-events: none;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(-30px, -30px) rotate(120deg); }
+    66% { transform: translate(30px, -20px) rotate(240deg); }
+  }
 `;
 
 const RegisterCard = styled.div`
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: ${theme.borderRadius.xl};
-  padding: 2rem;
+  padding: 2.5rem;
   width: 100%;
-  max-width: 400px;
-  box-shadow: ${theme.shadows.xl};
+  max-width: 420px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
+              0 0 0 1px rgba(255, 255, 255, 0.1);
   max-height: 90vh;
   overflow-y: auto;
+  position: relative;
+  z-index: 1;
+  animation: slideIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(30px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
 `;
 
 const BackButton = styled.button`
   position: absolute;
   top: 2rem;
   left: 2rem;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   width: 48px;
   height: 48px;
@@ -40,24 +108,55 @@ const BackButton = styled.button`
   justify-content: center;
   color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 2;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    transform: translateY(-1px) scale(0.98);
   }
 `;
 
 const Header = styled.div`
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
+`;
+
+const Logo = styled.div`
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1rem;
+  background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.primaryLight});
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: logoFloat 3s ease-in-out infinite;
+
+  @keyframes logoFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+  }
 `;
 
 const Title = styled.h1`
-  color: ${theme.colors.text};
-  font-size: 1.8rem;
-  font-weight: 600;
+  background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.primaryLight});
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 2rem;
+  font-weight: 700;
   margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
 `;
 
 const Subtitle = styled.p`
@@ -87,20 +186,29 @@ const InputIcon = styled.div`
 const Input = styled.input<{ $hasError?: boolean }>`
   width: 100%;
   padding: 1rem 1rem 1rem 3rem;
-  border: 2px solid ${props => props.$hasError ? theme.colors.error : theme.colors.border};
-  border-radius: ${theme.borderRadius.md};
+  border: 2px solid ${props => props.$hasError ? theme.colors.error : 'rgba(255, 255, 255, 0.2)'};
+  border-radius: ${theme.borderRadius.lg};
   font-size: 1rem;
-  transition: all 0.2s ease;
-  background: white;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  color: ${theme.colors.text};
 
   &:focus {
     outline: none;
-    border-color: ${theme.colors.primary};
-    box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.1);
+    border-color: ${props => props.$hasError ? theme.colors.error : theme.colors.primaryDark};
+    box-shadow: 0 0 0 4px ${props => props.$hasError ? 'rgba(239, 68, 68, 0.1)' : 'rgba(139, 92, 246, 0.15)'};
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-2px);
   }
 
   &::placeholder {
     color: ${theme.colors.placeholder};
+  }
+
+  &:hover:not(:focus) {
+    border-color: ${props => props.$hasError ? theme.colors.error : 'rgba(139, 92, 246, 0.3)'};
+    background: rgba(255, 255, 255, 0.9);
   }
 `;
 
@@ -124,26 +232,50 @@ const ErrorMessage = styled.span`
 
 const RegisterButton = styled.button<{ $loading?: boolean }>`
   width: 100%;
-  background: ${theme.colors.primary};
+  background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.primaryDark}, ${theme.colors.primaryLight});
+  background-size: 200% 200%;
   color: white;
-  padding: 1rem;
+  padding: 1.25rem;
   border: none;
-  border-radius: ${theme.borderRadius.md};
+  border-radius: ${theme.borderRadius.lg};
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   opacity: ${props => props.$loading ? 0.7 : 1};
   margin-top: 0.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s ease;
+  }
 
   &:hover:not(:disabled) {
-    background: ${theme.colors.primaryDark};
-    transform: translateY(-2px);
-    box-shadow: ${theme.shadows.md};
+    background-position: 100% 0;
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(139, 92, 246, 0.4);
+    
+    &::before {
+      left: 100%;
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(-1px);
   }
 
   &:disabled {
     cursor: not-allowed;
+    opacity: 0.6;
   }
 `;
 
@@ -212,6 +344,7 @@ const RegisterScreen: React.FC = () => {
       
       <RegisterCard className="fade-in">
         <Header>
+          <Logo>B</Logo>
           <Title>Crear Cuenta</Title>
           <Subtitle>Únete a la comunidad de BookMatch</Subtitle>
         </Header>

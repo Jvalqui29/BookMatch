@@ -60,15 +60,16 @@ const SubscriptionScreen: React.FC = () => {
       <Content>
         <Crown size={60} />
         <Title>BookMatch Premium</Title>
-        <Subtitle>Mejora tu experiencia de intercambio</Subtitle>
+        <Subtitle>Funciones exclusivas para lectores de Chile y el mundo</Subtitle>
         
         <PlanCard>
-          <h3>Plan Premium - 4.99€/mes</h3>
+          <h3>Plan Premium - $3.990 CLP/mes</h3>
           <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0 }}>
             <li>✓ Biblioteca ilimitada</li>
-            <li>✓ Búsqueda avanzada</li>
+            <li>✓ Búsqueda avanzada por autor/ciudad</li>
             <li>✓ Sin anuncios</li>
             <li>✓ Soporte prioritario</li>
+            <li>✓ Resaltado Premium en el mapa</li>
           </ul>
           <button 
             style={{ 

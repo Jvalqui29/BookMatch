@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { ArrowLeft, Save, Camera } from 'lucide-react';
@@ -95,6 +95,16 @@ const Avatar = styled.div`
   font-size: 2rem;
   border: 4px solid white;
   box-shadow: ${theme.shadows.md};
+`;
+
+const Cover = styled.div`
+  width: 100%;
+  height: 120px;
+  border-radius: ${theme.borderRadius.lg};
+  background: ${theme.colors.border};
+  margin-bottom: 1rem;
+  background-size: cover;
+  background-position: center;
 `;
 
 const CameraButton = styled.button`
@@ -219,12 +229,16 @@ const ProfileEditScreen: React.FC = () => {
   const { user, updateProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
     bio: user?.bio || '',
-    favoriteGenres: user?.favoriteGenres || []
+    favoriteGenres: user?.favoriteGenres || [],
+    avatar: user?.avatar || '',
+    coverImage: user?.coverImage || ''
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -241,6 +255,29 @@ const ProfileEditScreen: React.FC = () => {
         ? prev.favoriteGenres.filter(g => g !== genre)
         : [...prev.favoriteGenres, genre]
     }));
+  };
+
+  const handleFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleAvatarPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const dataUrl = await handleFileToBase64(file);
+    setFormData(prev => ({ ...prev, avatar: dataUrl }));
+  };
+
+  const handleCoverPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const dataUrl = await handleFileToBase64(file);
+    setFormData(prev => ({ ...prev, coverImage: dataUrl }));
   };
 
   const validateForm = () => {
@@ -294,12 +331,22 @@ const ProfileEditScreen: React.FC = () => {
 
       <Content>
         <AvatarSection>
+          {formData.coverImage && <Cover style={{ backgroundImage: `url(${formData.coverImage})` }} />}
           <AvatarContainer>
-            <Avatar>👤</Avatar>
-            <CameraButton>
+            <Avatar style={{ backgroundImage: formData.avatar ? `url(${formData.avatar})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+              {!formData.avatar && '👤'}
+            </Avatar>
+            <CameraButton onClick={() => avatarInputRef.current?.click()}>
               <Camera size={16} />
             </CameraButton>
           </AvatarContainer>
+          <input ref={avatarInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarPick} />
+          <div>
+            <button type="button" style={{ border: 'none', background: 'transparent', color: theme.colors.primary, cursor: 'pointer' }} onClick={() => coverInputRef.current?.click()}>
+              Cambiar foto de portada
+            </button>
+            <input ref={coverInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleCoverPick} />
+          </div>
         </AvatarSection>
 
         <Form id="profile-form" onSubmit={handleSubmit}>

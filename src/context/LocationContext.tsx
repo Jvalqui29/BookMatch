@@ -45,12 +45,19 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     try {
       setLoading(true);
       
-      const hasPermission = await requestLocationPermission();
-      if (!hasPermission) {
-        return null;
+      if (!navigator.geolocation) {
+        // Si no hay soporte, usar ubicación por defecto
+        const defaultLocation: Location = {
+          latitude: -33.4489,
+          longitude: -70.6693,
+          address: 'Santiago, Chile'
+        };
+        setCurrentLocation(defaultLocation);
+        setLoading(false);
+        return defaultLocation;
       }
 
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         navigator.geolocation.getCurrentPosition(
           (position) => {
             const location: Location = {
@@ -60,39 +67,41 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
             
             setCurrentLocation(location);
             toast.success('Ubicación obtenida correctamente');
+            setLoading(false);
             resolve(location);
           },
           (error) => {
             console.error('Error getting location:', error);
-            let errorMessage = 'No se pudo obtener tu ubicación actual';
+            let errorMessage = 'Usando ubicación por defecto';
             
             switch (error.code) {
               case error.PERMISSION_DENIED:
-                errorMessage = 'Permisos de ubicación denegados';
+                errorMessage = 'Permisos denegados - Usando ubicación por defecto';
                 break;
               case error.POSITION_UNAVAILABLE:
-                errorMessage = 'Información de ubicación no disponible';
+                errorMessage = 'Ubicación no disponible - Usando ubicación por defecto';
                 break;
               case error.TIMEOUT:
-                errorMessage = 'Tiempo de espera agotado al obtener ubicación';
+                errorMessage = 'Tiempo agotado - Usando ubicación por defecto';
                 break;
             }
             
             toast.error(errorMessage);
             
-            // Usar ubicación por defecto (Madrid, España) para desarrollo
+            // Usar ubicación por defecto
             const defaultLocation: Location = {
-              latitude: 40.4168,
-              longitude: -3.7038,
-              address: 'Madrid, España'
+              latitude: -33.4489,
+              longitude: -70.6693,
+              address: 'Santiago, Chile'
             };
             
             setCurrentLocation(defaultLocation);
+            setLoading(false);
             resolve(defaultLocation);
           },
           {
             enableHighAccuracy: true,
-            timeout: 15000,
+            timeout: 10000,
             maximumAge: 300000, // 5 minutos
           }
         );
@@ -110,8 +119,15 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
   };
 
   useEffect(() => {
-    // Obtener ubicación inicial al cargar la app
-    getCurrentLocation();
+    // NO pedir ubicación automáticamente para evitar problemas
+    // Establecer ubicación por defecto inmediatamente
+    const defaultLocation: Location = {
+      latitude: -33.4489,
+      longitude: -70.6693,
+      address: 'Santiago, Chile'
+    };
+    setCurrentLocation(defaultLocation);
+    setLoading(false);
   }, []);
 
   const value: LocationContextType = {

@@ -7,6 +7,7 @@ interface User {
   email: string;
   phone: string;
   avatar?: string;
+  coverImage?: string;
   bio?: string;
   favoriteGenres: string[];
   booksOwned: Book[];
@@ -29,6 +30,8 @@ interface Book {
   description?: string;
   condition: 'excellent' | 'good' | 'fair' | 'poor';
   isAvailable: boolean;
+  status?: 'reading' | 'available' | 'not-available';
+  forExchange?: boolean;
 }
 
 interface AuthContextType {
@@ -108,6 +111,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         phone: '+1234567890',
         avatar: 'https://via.placeholder.com/150',
+        coverImage: '',
         bio: 'Amante de los libros y las historias',
         favoriteGenres: ['Ficción', 'Misterio', 'Romance'],
         booksOwned: [],
@@ -140,6 +144,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         name: userData.name,
         email: userData.email,
         phone: userData.phone,
+        coverImage: '',
         favoriteGenres: userData.favoriteGenres,
         booksOwned: [],
         booksWanted: [],

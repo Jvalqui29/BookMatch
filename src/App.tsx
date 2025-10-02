@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { GlobalStyles } from './styles/GlobalStyles.tsx';
 import { theme } from './styles/theme.ts';
@@ -14,13 +14,17 @@ import MapScreen from './screens/MapScreen.tsx';
 import ChatListScreen from './screens/ChatListScreen.tsx';
 import ChatScreen from './screens/ChatScreen.tsx';
 import ProfileScreen from './screens/ProfileScreen.tsx';
+import UserProfileScreen from './screens/UserProfileScreen.tsx';
 import ProfileEditScreen from './screens/ProfileEditScreen.tsx';
 import BookDetailScreen from './screens/BookDetailScreen.tsx';
 import SubscriptionScreen from './screens/SubscriptionScreen.tsx';
+import MyBooksScreen from './screens/MyBooksScreen.tsx';
+import SettingsScreen from './screens/SettingsScreen.tsx';
 
 // Context
 import { AuthProvider, useAuth } from './context/AuthContext.tsx';
 import { LocationProvider } from './context/LocationContext.tsx';
+import { ThemeProvider } from './context/ThemeContext.tsx';
 
 // Components
 import MainNavigation from './components/MainNavigation.tsx';
@@ -104,6 +108,11 @@ const AppRoutes = () => {
           </MainNavigation>
         </ProtectedRoute>
       } />
+      <Route path="/profile/:userId" element={
+        <ProtectedRoute>
+          <UserProfileScreen />
+        </ProtectedRoute>
+      } />
       <Route path="/profile/edit" element={
         <ProtectedRoute>
           <ProfileEditScreen />
@@ -114,9 +123,24 @@ const AppRoutes = () => {
           <BookDetailScreen />
         </ProtectedRoute>
       } />
+      <Route path="/my-books" element={
+        <ProtectedRoute>
+          <MainNavigation>
+            <MyBooksScreen />
+          </MainNavigation>
+        </ProtectedRoute>
+      } />
       <Route path="/subscription" element={
         <ProtectedRoute>
           <SubscriptionScreen />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/settings" element={
+        <ProtectedRoute>
+          <MainNavigation>
+            <SettingsScreen />
+          </MainNavigation>
         </ProtectedRoute>
       } />
 
@@ -131,21 +155,23 @@ const App = () => {
     <>
       <GlobalStyles />
       <Router>
-        <AuthProvider>
-          <LocationProvider>
-            <AppRoutes />
-            <Toaster
-              position="top-center"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: '#363636',
-                  color: '#fff',
-                },
-              }}
-            />
-          </LocationProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <LocationProvider>
+              <AppRoutes />
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  duration: 4000,
+                  style: {
+                    background: '#363636',
+                    color: '#fff',
+                  },
+                }}
+              />
+            </LocationProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </Router>
     </>
   );
