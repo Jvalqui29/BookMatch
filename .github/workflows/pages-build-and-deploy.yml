@@ -62,6 +62,16 @@ jobs:
         run: npm run build
         working-directory: ${{ steps.detect.outputs.PROJECT_DIR }}
 
+      - name: Diagnostic: show build dir and run id
+        run: |
+          echo "GITHUB_RUN_ID=$GITHUB_RUN_ID"
+          echo "Listing build directory contents:" 
+          ls -la "${{ steps.detect.outputs.PROJECT_DIR }}/build" || true
+          echo "Querying artifacts for this run via Actions API (raw JSON)"
+          curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${GITHUB_RUN_ID}/artifacts" || true
+
       - name: Upload production build for GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
