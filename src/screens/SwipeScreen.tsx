@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Heart, X, Star, MapPin, User, Search } from 'lucide-react';
-import { theme, getThemeColors } from '../styles/theme.ts';
+import { Heart, X, Star, MapPin, User, Search, ChevronDown } from 'lucide-react';
+import { theme } from '../styles/theme.ts';
 import { useThemeMode } from '../context/ThemeContext.tsx';
 
 const Container = styled.div<{ $isDark: boolean }>`
@@ -26,81 +26,90 @@ const Container = styled.div<{ $isDark: boolean }>`
   }
 `;
 
-const Header = styled.div`
+const Header = styled.div<{ $isDark: boolean }>`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding: ${theme.spacing.lg};
-  background: ${theme.colors.surfaceGlass};
-  backdrop-filter: blur(20px);
-  border-radius: ${theme.borderRadius.xl};
-  border: 1px solid ${theme.colors.borderLight};
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+  padding: 1rem 1.25rem;
+  background: ${props => props.$isDark ? 'linear-gradient(180deg, rgba(12,10,45,0.6), rgba(15,23,42,0.45))' : 'linear-gradient(180deg, rgba(247,243,255,0.9), rgba(248,250,252,0.86))'};
+  backdrop-filter: blur(8px);
+    border-radius: 16px;
+    border: 1px solid ${props => props.$isDark ? 'rgba(130,87,229,0.18)' : 'rgba(124,58,237,0.12)'};
+    box-shadow: 0 12px 42px ${props => props.$isDark ? 'rgba(124,58,237,0.08)' : 'rgba(124,58,237,0.04)'};
   position: relative;
   z-index: 10;
-  box-shadow: ${theme.shadows.lg};
 `;
 
+// SearchBar: más delgada, icono dentro, sombra sutil
 const SearchContainer = styled.div`
   position: relative;
   width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+`;
+
+const HeaderTop = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+`;
+
+const GenreButton = styled.button<{ $isDark: boolean }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  background: ${props => props.$isDark ? 'linear-gradient(90deg, rgba(124,58,237,0.12), rgba(99,102,241,0.06))' : 'linear-gradient(90deg, rgba(245,243,255,1), rgba(255,255,255,1))'};
+  border: 1px solid ${props => props.$isDark ? 'rgba(124,58,237,0.14)' : 'rgba(226,232,240,0.6)'};
+  box-shadow: 0 8px 24px ${props => props.$isDark ? 'rgba(99,102,241,0.08)' : 'rgba(16,24,40,0.06)'};
+  cursor: pointer;
+  font-weight: 600;
+`;
+
+const GenreMenu = styled.div<{ $isDark: boolean }>`
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: ${props => props.$isDark ? '#0b1220' : 'white'};
+  color: ${props => props.$isDark ? '#e6eef8' : 'inherit'};
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(2,6,23,0.12);
+  border: 1px solid ${props => props.$isDark ? 'rgba(255,255,255,0.03)' : 'rgba(17,24,39,0.06)'};
+  overflow: hidden;
+  z-index: 60;
 `;
 
 const SearchInput = styled.input<{ $isDark: boolean }>`
   width: 100%;
-  padding: 1rem 1rem 1rem 3rem;
-  border: 2px solid ${props => props.$isDark ? theme.colors.dark.border : theme.colors.light.border};
-  border-radius: ${theme.borderRadius.lg};
-  background: ${props => props.$isDark ? theme.colors.dark.input : theme.colors.light.input};
+  padding: 0.6rem 1rem 0.6rem 3rem;
+  border-radius: 999px;
+  border: 1px solid ${props => props.$isDark ? 'rgba(255,255,255,0.06)' : 'rgba(17,24,39,0.06)'};
+  background: ${props => props.$isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.9)'};
   color: ${props => props.$isDark ? theme.colors.dark.inputText : theme.colors.light.inputText};
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  
-  &::placeholder {
-    color: ${props => props.$isDark ? theme.colors.dark.placeholder : theme.colors.light.placeholder};
-  }
-  
-  &:focus {
-    outline: none;
-    border-color: ${theme.colors.primary};
-    box-shadow: 0 0 0 4px ${theme.colors.primary}20;
-    background: ${props => props.$isDark ? theme.colors.dark.surfaceElevated : theme.colors.light.surfaceElevated};
-  }
+  font-size: 0.95rem;
+  box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+  transition: all 0.18s ease;
+
+  &::placeholder { color: ${theme.colors.placeholder}; }
+
+  &:focus { transform: translateY(-1px); box-shadow: 0 10px 30px rgba(99,102,241,0.12); outline: none; }
 `;
 
 const SearchIcon = styled.div`
   position: absolute;
-  left: 1rem;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: ${theme.colors.textSecondary};
+  color: ${theme.colors.primary};
+  opacity: 0.9;
   pointer-events: none;
 `;
 
-const FilterTabs = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
-`;
-
-const FilterTab = styled.button<{ $active?: boolean }>`
-  padding: 0.5rem 1rem;
-  border: 1px solid ${props => props.$active ? theme.colors.primary : theme.colors.borderLight};
-  border-radius: ${theme.borderRadius.full};
-  background: ${props => props.$active ? theme.colors.primary : 'transparent'};
-  color: ${props => props.$active ? 'white' : theme.colors.textSecondary};
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  
-  &:hover {
-    background: ${props => props.$active ? theme.colors.primaryDark : theme.colors.backgroundGradient};
-    border-color: ${theme.colors.primary};
-  }
-`;
+/* Genre pills removed by user request */
 
 const SearchHint = styled.div`
   text-align: center;
@@ -127,56 +136,29 @@ const SwipeContainer = styled.div`
   align-items: center;
   justify-content: center;
   position: relative;
-  max-width: 400px;
-  margin: 0 auto;
   width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1rem;
 `;
 
 const BookCard = styled.div`
-  background: ${theme.colors.surface};
-  border-radius: ${theme.borderRadius['2xl']};
-  box-shadow: ${theme.shadows.xl};
-  border: 1px solid ${theme.colors.borderLight};
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,252,0.98));
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(2,6,23,0.10);
+  border: 1px solid rgba(17,24,39,0.04);
   width: 100%;
-  max-width: 380px;
+  max-width: 720px;
   overflow: hidden;
-  cursor: grab;
-  transition: ${theme.transitions.spring};
+  transition: transform 220ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms ease;
   position: relative;
 
-  &:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: ${theme.shadows['2xl']};
-    border-color: ${theme.colors.primary}40;
-  }
-
-  &:active {
-    cursor: grabbing;
-    transform: translateY(-4px) scale(1.01);
-  }
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: -1px;
-    left: -1px;
-    right: -1px;
-    bottom: -1px;
-    background: ${theme.colors.primaryGradient};
-    border-radius: inherit;
-    z-index: -1;
-    opacity: 0;
-    transition: ${theme.transitions.normal};
-  }
-  
-  &:hover::before {
-    opacity: 0.2;
-  }
+  &:hover { transform: translateY(-8px) scale(1.01); box-shadow: 0 20px 50px rgba(13,17,44,0.14); }
 `;
 
 const BookImage = styled.div`
-  height: 320px;
-  background: ${theme.colors.primaryGradient};
+  height: 360px;
+  background: linear-gradient(135deg, #7C3AED, #667EEA);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -184,65 +166,59 @@ const BookImage = styled.div`
   font-size: 4rem;
   position: relative;
   overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 50%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
-  }
-  
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: 
-      linear-gradient(45deg, transparent 35%, rgba(255,255,255,0.05) 50%, transparent 65%);
-    background-size: 20px 20px;
-  }
+
+  /* Textura sutil diagonal */
+  &::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(45deg, rgba(255,255,255,0.03) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.03) 75%, transparent 75%, transparent); background-size: 24px 24px; opacity: 0.7; }
 `;
 
 const BookInfo = styled.div`
-  padding: 1.5rem;
+  padding: 1.5rem 1.5rem 2rem 1.5rem;
 `;
 
 const BookTitle = styled.h2`
-  color: ${theme.colors.text};
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  color: #0f172a;
+  font-size: 1.45rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 `;
 
 const BookAuthor = styled.p`
-  color: ${theme.colors.textSecondary};
-  font-size: 1rem;
-  margin-bottom: 1rem;
+  color: #475569;
+  font-size: 0.98rem;
+  margin-bottom: 0.9rem;
+  font-weight: 600;
 `;
 
 const BookDetails = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
 `;
 
-const BookTag = styled.span`
-  background: linear-gradient(135deg, ${theme.colors.primary}15, ${theme.colors.secondary}10);
-  color: ${theme.colors.primary};
-  padding: ${theme.spacing.xs} ${theme.spacing.md};
-  border-radius: ${theme.borderRadius.pill};
-  font-size: 0.85rem;
-  font-weight: ${theme.fonts.medium.fontWeight};
-  border: 1px solid ${theme.colors.primary}25;
-  display: flex;
+const BookTag = styled.div`
+  display: inline-flex;
   align-items: center;
-  gap: ${theme.spacing.xs};
+  gap: 0.45rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(124,58,237,0.08);
+  color: #6D28D9;
+  font-weight: 600;
+  font-size: 0.82rem;
+  border: 1px solid rgba(124,58,237,0.12);
+`;
+
+const BookTagDropdownBtn = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.98);
+  border: 1px solid rgba(17,24,39,0.04);
+  cursor: pointer;
 `;
 
 const OwnerInfo = styled.div`
@@ -250,18 +226,19 @@ const OwnerInfo = styled.div`
   align-items: center;
   gap: 0.75rem;
   padding-top: 1rem;
-  border-top: 1px solid ${theme.colors.border};
+  border-top: 1px solid rgba(17,24,39,0.04);
 `;
 
 const OwnerAvatar = styled.div`
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: ${theme.colors.primary};
+  background: linear-gradient(135deg,#7C3AED,#667EEA);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  font-weight: 700;
 `;
 
 const OwnerDetails = styled.div`
@@ -287,60 +264,30 @@ const OwnerLocation = styled.p`
 const ActionButtons = styled.div`
   display: flex;
   justify-content: center;
-  gap: 2rem;
-  margin-top: 2rem;
-  padding: 0 1rem;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+  padding: 0 1rem 1.25rem 1rem;
 `;
 
-const ActionButton = styled.button<{ $variant: 'reject' | 'like' }>`
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+const ActionButton = styled.button<{ $variant: 'reject' | 'like' | 'super' }>`
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
   border: none;
-  background: ${props => props.$variant === 'like' 
-    ? `linear-gradient(135deg, ${theme.colors.success} 0%, #51CF66 100%)`
-    : `linear-gradient(135deg, ${theme.colors.error} 0%, #FF6B6B 100%)`
-  };
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: ${theme.transitions.spring};
-  box-shadow: ${theme.shadows.lg};
+  transition: transform 160ms ease, box-shadow 160ms ease;
+  box-shadow: 0 12px 30px rgba(2,6,23,0.08);
   position: relative;
-  overflow: hidden;
 
-  &:hover {
-    transform: scale(1.1) ${props => props.$variant === 'like' ? 'rotate(5deg)' : 'rotate(-5deg)'};
-    box-shadow: ${theme.shadows.xl};
-  }
+  background: ${props => props.$variant === 'like' ? 'linear-gradient(135deg,#10B981,#22C55E)' : props.$variant === 'super' ? 'linear-gradient(135deg,#7C3AED,#667EEA)' : 'linear-gradient(135deg,#FF6B6B,#FF4D4D)'};
 
-  &:active {
-    transform: scale(0.95);
-  }
-  
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-    transform: scale(0);
-    opacity: 0;
-    transition: ${theme.transitions.fast};
-  }
-  
-  &:active::before {
-    transform: scale(1);
-    opacity: 1;
-  }
-  
-  svg {
-    width: 24px;
-    height: 24px;
-    z-index: 1;
-  }
+  &:hover { transform: translateY(-6px) scale(1.05); box-shadow: 0 18px 44px rgba(2,6,23,0.12); }
+
+  svg { width: 22px; height: 22px; }
 `;
 
 const EmptyState = styled.div`
@@ -398,48 +345,56 @@ const SwipeScreen: React.FC = () => {
   const [currentBookIndex, setCurrentBookIndex] = useState(0);
   const [books] = useState(mockBooks);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('Todos');
-
-  const filters = ['Todos', 'Ficción', 'Fantasía', 'Historia', 'Ciencia', 'Romance'];
+  const [showTagMenu, setShowTagMenu] = useState(false);
+  const [selectedGenre, setSelectedGenre] = useState('Todos');
+  const [showGenreMenu, setShowGenreMenu] = useState(false);
 
   const currentBook = books[currentBookIndex];
 
   const handleLike = () => {
     console.log('Liked book:', currentBook.title);
+    setShowTagMenu(false);
     setCurrentBookIndex(prev => prev + 1);
   };
 
   const handleReject = () => {
     console.log('Rejected book:', currentBook.title);
+    setShowTagMenu(false);
     setCurrentBookIndex(prev => prev + 1);
   };
 
   return (
     <Container $isDark={isDark}>
-      <Header>
-        <SearchContainer>
-          <SearchIcon>
-            <Search size={20} />
-          </SearchIcon>
-          <SearchInput 
-            $isDark={isDark}
-            placeholder="Buscar libros, autores, géneros..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </SearchContainer>
-        
-        <FilterTabs>
-          {filters.map(filter => (
-            <FilterTab 
-              key={filter}
-              $active={activeFilter === filter}
-              onClick={() => setActiveFilter(filter)}
-            >
-              {filter}
-            </FilterTab>
-          ))}
-        </FilterTabs>
+      <Header $isDark={isDark}>
+        <HeaderTop>
+          <SearchContainer style={{ flex: 1 }}>
+            <SearchIcon>
+              <Search size={20} />
+            </SearchIcon>
+            <SearchInput 
+              $isDark={isDark}
+              placeholder="Buscar libros, autores, géneros..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </SearchContainer>
+
+          <div style={{ position: 'relative' }}>
+            <GenreButton $isDark={isDark} onClick={() => setShowGenreMenu(s => !s)}>
+              {selectedGenre}
+              <ChevronDown size={14} />
+            </GenreButton>
+            {showGenreMenu && (
+              <GenreMenu $isDark={isDark}>
+                {['Todos','Ficción','Fantasía','Historia','Ciencia','Romance'].map(g => (
+                  <div key={g} onClick={() => { setSelectedGenre(g); setShowGenreMenu(false); }} style={{ padding: '0.6rem 1rem', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'background 120ms ease' }} onMouseEnter={e => (e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(240,240,246,1)')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    {g}
+                  </div>
+                ))}
+              </GenreMenu>
+            )}
+          </div>
+        </HeaderTop>
       </Header>
 
       {searchQuery ? (
@@ -461,7 +416,19 @@ const SwipeScreen: React.FC = () => {
               
               <BookDetails>
                 <BookTag>{currentBook.genre}</BookTag>
-                <BookTag>{currentBook.condition}</BookTag>
+                <div style={{ position: 'relative' }}>
+                  <BookTagDropdownBtn onClick={() => setShowTagMenu(s => !s)}>
+                    <span>{currentBook.condition}</span>
+                    <ChevronDown size={14} />
+                  </BookTagDropdownBtn>
+                  {showTagMenu && (
+                    <div style={{ position: 'absolute', right: 0, top: '110%', background: 'white', border: '1px solid rgba(17,24,39,0.06)', borderRadius: 8, boxShadow: '0 10px 30px rgba(2,6,23,0.08)', padding: '0.5rem', zIndex: 40 }}>
+                      <div style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}>Excelente</div>
+                      <div style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}>Bueno</div>
+                      <div style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}>Como nuevo</div>
+                    </div>
+                  )}
+                </div>
               </BookDetails>
 
               <OwnerInfo>

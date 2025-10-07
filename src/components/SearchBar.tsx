@@ -49,3 +49,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = 'Buscar...', value,
 export default SearchBar;
 
 
+
+
+
+

@@ -5,12 +5,10 @@ import { useForm } from 'react-hook-form';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { theme } from '../../styles/theme.ts';
+import BookshelfBackground from '../../components/BookshelfBackground.tsx';
 
 const Container = styled.div`
   min-height: 100vh;
-  background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.primaryDark} 50%, ${theme.colors.primaryLight} 100%);
-  background-size: 400% 400%;
-  animation: gradientShift 8s ease infinite;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -338,6 +336,7 @@ const RegisterScreen: React.FC = () => {
 
   return (
     <Container>
+      <BookshelfBackground />
       <BackButton onClick={() => navigate('/welcome')}>
         <ArrowLeft size={24} />
       </BackButton>

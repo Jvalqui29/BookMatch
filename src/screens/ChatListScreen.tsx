@@ -112,6 +112,7 @@ const Avatar = styled.div`
   font-weight: 600;
   margin-right: 1rem;
   flex-shrink: 0;
+  cursor: pointer;
 `;
 
 const ChatInfo = styled.div`
@@ -264,10 +265,10 @@ const ChatListScreen: React.FC = () => {
         {filteredChats.length > 0 ? (
           filteredChats.map((chat) => (
             <ChatItem key={chat.id}>
+              <Avatar onClick={(e) => handleProfileClick(e as any, chat.user.id)} title={`Ver perfil de ${chat.user.name}`}>
+                <User size={24} />
+              </Avatar>
               <ChatContent onClick={() => handleChatClick(chat.id)}>
-                <Avatar>
-                  <User size={24} />
-                </Avatar>
                 <ChatInfo>
                   <ChatHeader>
                     <UserName>{chat.user.name}</UserName>
@@ -280,9 +281,6 @@ const ChatListScreen: React.FC = () => {
                   <BookTitle>{chat.book}</BookTitle>
                 </ChatInfo>
               </ChatContent>
-              <ProfileButton onClick={(e) => handleProfileClick(e, chat.user.id)}>
-                <User size={16} />
-              </ProfileButton>
             </ChatItem>
           ))
         ) : searchQuery ? (

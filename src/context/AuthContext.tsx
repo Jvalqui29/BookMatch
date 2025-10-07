@@ -19,6 +19,8 @@ interface User {
   };
   isPremium: boolean;
   createdAt: Date;
+  ratingAverage?: number;
+  ratingCount?: number;
 }
 
 interface Book {
@@ -32,6 +34,7 @@ interface Book {
   isAvailable: boolean;
   status?: 'reading' | 'available' | 'not-available';
   forExchange?: boolean;
+  progress?: number; // 0-100 progreso de lectura
 }
 
 interface AuthContextType {
@@ -118,6 +121,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         booksWanted: [],
         isPremium: false,
         createdAt: new Date(),
+        ratingAverage: 4.6,
+        ratingCount: 18,
       };
 
       await saveUser(mockUser);

@@ -1,6 +1,7 @@
 import { createGlobalStyle } from 'styled-components';
 
 export const GlobalStyles = createGlobalStyle`
+  /* Font loaded via <link> in public/index.html to avoid CSSOM @import issues with createGlobalStyle */
   * {
     margin: 0;
     padding: 0;
@@ -14,11 +15,11 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+    font-family: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: linear-gradient(135deg, #FAFBFE 0%, #F7FAFC 100%);
-    color: #2D3748;
+    background: radial-gradient(circle at 10% 10%, rgba(102,78,255,0.06), transparent 10%), linear-gradient(180deg, #0b1226 0%, #12122a 30%, #211a3a 100%);
+    color: #E6EEF8;
     line-height: 1.6;
     letter-spacing: -0.01em;
     overflow-x: hidden;
@@ -26,8 +27,8 @@ export const GlobalStyles = createGlobalStyle`
 
   /* Dark theme mejorado */
   body[data-theme='dark'] {
-    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-    color: #F1F5F9;
+    background: linear-gradient(180deg, #070617 0%, #12092a 40%, #20103a 100%);
+    color: #F8FAFF;
   }
 
   body[data-theme='dark'] a { 
@@ -73,6 +74,14 @@ export const GlobalStyles = createGlobalStyle`
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  /* Header más pequeño por defecto para una UI más minimalista */
+  header, .app-header {
+    padding: 0.6rem 1rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
   }
 
   h2 {

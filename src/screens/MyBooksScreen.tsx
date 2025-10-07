@@ -140,6 +140,128 @@ const Cover = styled.div`
   }
 `;
 
+/* --- Vista Biblioteca 3D --- */
+const ShelfArea = styled.div`
+  position: relative;
+  perspective: 1200px;
+  background: radial-gradient(1000px 400px at 50% 0%, rgba(255,255,255,0.05), transparent 70%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 1.25rem 1rem 1rem;
+  margin-bottom: 1.25rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+`;
+
+const Shelf = styled.div`
+  position: relative;
+  height: 110px;
+  transform-style: preserve-3d;
+  transform: rotateX(8deg) translateZ(0);
+  margin-bottom: 16px;
+`;
+
+const ShelfBoard = styled.div`
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 16px;
+  background: linear-gradient(0deg, #2b1f1a, #3a2b24);
+  border-radius: 4px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.6);
+  transform: translateZ(30px);
+`;
+
+const BookSpine3D = styled.div<{ color: string, height: number, width: number, title: string }>`
+  position: absolute;
+  bottom: 16px;
+  width: ${p => p.width}px;
+  height: ${p => p.height}px;
+  background: ${p => p.color};
+  border-radius: 3px 6px 6px 3px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.45), inset -2px 0 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+  transform: translateZ(36px) rotateY(-6deg);
+  transition: transform 300ms ease, box-shadow 300ms ease;
+  cursor: default;
+
+  &:hover {
+    transform: translateZ(44px) rotateY(-2deg) translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.6), inset -2px 0 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  &::after {
+    content: attr(data-title);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-90deg);
+    color: rgba(255,255,255,0.85);
+    font-size: 10px;
+    letter-spacing: 0.4px;
+    font-family: 'Georgia', serif;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    white-space: nowrap;
+  }
+`;
+
+const ShelfLabel = styled.div`
+  position: absolute;
+  left: 8px;
+  bottom: 18px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.6);
+`;
+
+const ViewToggle = styled.div`
+  display: inline-flex;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  overflow: hidden;
+`;
+
+const ToggleBtn = styled.button<{ $active?: boolean }>`
+  padding: 0.5rem 0.9rem;
+  color: ${p => p.$active ? '#0f172a' : 'rgba(255,255,255,0.85)'};
+  background: ${p => p.$active ? 'linear-gradient(135deg, #F8FAFC, #E5E7EB)' : 'transparent'};
+  border-right: 1px solid rgba(255,255,255,0.08);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 200ms ease;
+
+  &:last-child { border-right: 0; }
+`;
+
+const ProgressRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const ProgressBar = styled.div<{ value: number }>`
+  height: 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: ${p => Math.max(0, Math.min(100, p.value))}%;
+    background: linear-gradient(90deg, #10B981, #22D3EE);
+  }
+`;
+
+const ProgressInput = styled.input`
+  width: 100%;
+`;
+
 const BookTitle = styled.div`
   font-weight: 600;
   color: #ffffff;
@@ -495,6 +617,7 @@ const MyBooksScreen: React.FC = () => {
   }
 
   const books = user.booksOwned || [];
+  const [view3D, setView3D] = useState(true);
   
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -605,6 +728,10 @@ const MyBooksScreen: React.FC = () => {
     <Container>
       <Header>
         <Title>Mi Biblioteca</Title>
+        <ViewToggle>
+          <ToggleBtn $active={view3D} onClick={() => setView3D(true)}>3D</ToggleBtn>
+          <ToggleBtn $active={!view3D} onClick={() => setView3D(false)}>Cuadrícula</ToggleBtn>
+        </ViewToggle>
         <AddButton onClick={() => setAdding(v => !v)}>
           <Plus size={16} /> {adding ? 'Cancelar' : 'Agregar'}
         </AddButton>
@@ -666,34 +793,82 @@ const MyBooksScreen: React.FC = () => {
           ¡Construye tu biblioteca personal y conecta con otros lectores!</p>
         </EmptyState>
       ) : (
-        <Grid>
-          {filtered.map(b => (
-          <Card key={b.id}>
-            <Cover style={{ backgroundImage: b.coverImage ? `url(${b.coverImage})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-              {!b.coverImage && <BookOpen />}
-              <ExchangeIndicator $forExchange={b.forExchange !== false}>
-                {b.forExchange !== false ? '↔' : '×'}
-              </ExchangeIndicator>
-            </Cover>
-            <BookStatus $status={b.status || 'available'}>
-              {b.status === 'reading' && '📖 Leyendo'}
-              {b.status === 'available' && '✅ Disponible'}
-              {b.status === 'not-available' && '❌ No disponible'}
-              {!b.status && '✅ Disponible'}
-            </BookStatus>
-            <BookTitle>{b.title}</BookTitle>
-            <BookAuthor>{b.author}</BookAuthor>
-            <CardActions>
-              <EditBtn onClick={() => startEdit(b)}>
-                Editar
-              </EditBtn>
-              <RemoveBtn onClick={() => removeBook(b.id)}>
-                <Trash2 size={16} />
-              </RemoveBtn>
-            </CardActions>
-          </Card>
-        ))}
-        </Grid>
+        <>
+          {view3D && (
+            <ShelfArea>
+              {[0,1,2].map(row => (
+                <Shelf key={row}>
+                  <ShelfBoard />
+                  {filtered.slice(row * 8, row * 8 + 8).map((b, i) => {
+                    const left = 14 + i * 42;
+                    const height = 64 + (i % 4) * 6;
+                    const width = 18 + (i % 3) * 2;
+                    const color = b.coverImage ? 'linear-gradient(135deg, #475569, #1f2937)' : `linear-gradient(135deg, #6B46C1, #8B5CF6)`;
+                    return (
+                      <BookSpine3D
+                        key={b.id}
+                        style={{ left: `${left}px` }}
+                        height={height}
+                        width={width}
+                        color={color}
+                        title={b.title}
+                        data-title={b.title}
+                      />
+                    );
+                  })}
+                  <ShelfLabel>Estante {row + 1}</ShelfLabel>
+                </Shelf>
+              ))}
+            </ShelfArea>
+          )}
+
+          {!view3D && (
+            <Grid>
+              {filtered.map(b => (
+                <Card key={b.id}>
+                  <Cover style={{ backgroundImage: b.coverImage ? `url(${b.coverImage})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                    {!b.coverImage && <BookOpen />}
+                    <ExchangeIndicator $forExchange={b.forExchange !== false}>
+                      {b.forExchange !== false ? '↔' : '×'}
+                    </ExchangeIndicator>
+                  </Cover>
+                  <BookStatus $status={b.status || 'available'}>
+                    {b.status === 'reading' && '📖 Leyendo'}
+                    {b.status === 'available' && '✅ Disponible'}
+                    {b.status === 'not-available' && '❌ No disponible'}
+                    {!b.status && '✅ Disponible'}
+                  </BookStatus>
+                  <BookTitle>{b.title}</BookTitle>
+                  <BookAuthor>{b.author}</BookAuthor>
+
+                  <ProgressRow>
+                    <ProgressBar value={b.progress ?? 0} />
+                    <ProgressInput
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={b.progress ?? 0}
+                      onChange={async (e) => {
+                        const value = parseInt(e.target.value, 10);
+                        const updated = books.map(x => x.id === b.id ? { ...x, progress: value, status: value > 0 && value < 100 ? 'reading' : (value === 100 ? 'not-available' : (x.status || 'available')) } : x);
+                        await updateProfile({ booksOwned: updated });
+                      }}
+                    />
+                  </ProgressRow>
+
+                  <CardActions>
+                    <EditBtn onClick={() => startEdit(b)}>
+                      Editar
+                    </EditBtn>
+                    <RemoveBtn onClick={() => removeBook(b.id)}>
+                      <Trash2 size={16} />
+                    </RemoveBtn>
+                  </CardActions>
+                </Card>
+              ))}
+            </Grid>
+          )}
+        </>
       )}
       
       <Modal show={showOnlineSearch}>

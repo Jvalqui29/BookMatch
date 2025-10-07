@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { LatLngExpression, Icon } from 'leaflet';
+import { LatLngExpression } from 'leaflet';
+import L from 'leaflet';
 import { User, Book, MapPin } from 'lucide-react';
 import { useLocation } from '../context/LocationContext.tsx';
 import { theme } from '../styles/theme.ts';
@@ -45,6 +47,18 @@ const MapWrapper = styled.div`
     height: 100%;
     width: 100%;
   }
+  /* estilos para los iconos SVG personalizados */
+  .custom-div-icon {
+    background: transparent;
+  }
+
+  .custom-div-icon svg {
+    width: 36px;
+    height: 36px;
+    display: block;
+  }
+  .custom-div-icon.user svg { filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15)); }
+  .custom-div-icon.book svg { transform: translateY(2px); }
 `;
 
 const LoadingContainer = styled.div`
@@ -88,12 +102,12 @@ const BookItem = styled.div`
   font-size: 0.8rem;
 `;
 
-// Mock data for nearby users
+// Mock data for nearby users (Chile / Santiago coordinates)
 const mockUsers = [
   {
     id: '1',
     name: 'María González',
-    location: { lat: 40.4168, lng: -3.7038 }, // Madrid centro
+    location: { lat: -33.4489, lng: -70.6693 }, // Santiago centro
     distance: '2.5 km',
     books: [
       { title: 'Cien años de soledad', author: 'G. García Márquez' },
@@ -103,7 +117,7 @@ const mockUsers = [
   {
     id: '2',
     name: 'Carlos Ruiz',
-    location: { lat: 40.4200, lng: -3.7100 },
+    location: { lat: -33.4378, lng: -70.6505 }, // cerca Plaza de Armas
     distance: '1.2 km',
     books: [
       { title: 'El nombre del viento', author: 'P. Rothfuss' },
@@ -113,7 +127,7 @@ const mockUsers = [
   {
     id: '3',
     name: 'Ana López',
-    location: { lat: 40.4150, lng: -3.7000 },
+    location: { lat: -33.4372, lng: -70.6640 }, // Providencia / Bellas Artes area
     distance: '800 m',
     books: [
       { title: 'Beloved', author: 'T. Morrison' },
@@ -123,21 +137,34 @@ const mockUsers = [
 ];
 
 const MapScreen: React.FC = () => {
+  const navigate = useNavigate();
   const { currentLocation, loading } = useLocation();
-  const [mapCenter, setMapCenter] = useState<LatLngExpression>([-33.4489, -70.6693]); // Santiago por defecto
-
-  const bookIcon = new Icon({
-    iconUrl: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4d6.png',
-    iconSize: [28, 28],
-    iconAnchor: [14, 28],
-    popupAnchor: [0, -24]
-  });
+  // Por defecto centramos en Santiago, Chile
+  const [mapCenter, setMapCenter] = useState<LatLngExpression>([-33.4489, -70.6693]);
 
   useEffect(() => {
     if (currentLocation) {
       setMapCenter([currentLocation.latitude, currentLocation.longitude]);
     }
   }, [currentLocation]);
+
+  // Iconos SVG embebidos (sin depender de un CDN)
+  const userSvg = `
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="8" r="3" fill="#3182CE" />
+      <path d="M4 20c0-4 4-6 8-6s8 2 8 6" fill="#3182CE" />
+    </svg>
+  `;
+
+  const bookSvg = `
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a1 1 0 0 1-1.5.87L12 16l-6.5 2.87A1 1 0 0 1 4 18V6z" fill="#6B46C1"/>
+      <path d="M6 6v10l5-2 5 2V6H6z" fill="#FFFFFF" opacity="0.15"/>
+    </svg>
+  `;
+
+  const userIcon = L.divIcon({ html: userSvg, className: 'custom-div-icon user', iconSize: [36, 36], iconAnchor: [18, 36] });
+  const bookIcon = L.divIcon({ html: bookSvg, className: 'custom-div-icon book', iconSize: [36, 36], iconAnchor: [18, 36] });
 
   if (loading) {
     return (
@@ -175,7 +202,7 @@ const MapScreen: React.FC = () => {
           
           {/* Marcador del usuario actual */}
           {currentLocation && (
-            <Marker position={[currentLocation.latitude, currentLocation.longitude]} icon={bookIcon}>
+            <Marker position={[currentLocation.latitude, currentLocation.longitude]} icon={userIcon}>
               <Popup>
                 <PopupContent>
                   <UserName>Tu ubicación</UserName>
@@ -209,6 +236,9 @@ const MapScreen: React.FC = () => {
                       </BookItem>
                     ))}
                   </BooksList>
+                  <div style={{marginTop: 8, display: 'flex', justifyContent: 'flex-end'}}>
+                    <button onClick={() => navigate(`/chat/new?userId=${user.id}`)} style={{background: '#6B46C1', color: 'white', border: 'none', padding: '6px 10px', borderRadius: 8, cursor: 'pointer'}}>Enviar mensaje</button>
+                  </div>
                 </PopupContent>
               </Popup>
             </Marker>

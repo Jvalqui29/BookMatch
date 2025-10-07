@@ -5,14 +5,15 @@ import { useForm } from 'react-hook-form';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { theme } from '../../styles/theme.ts';
+import BookshelfBackground from '../../components/BookshelfBackground.tsx';
 
-const Container = styled.div`
+const Container = styled.div<{ isDarkMode?: boolean }>`
   min-height: 100vh;
-  background: ${theme.colors.primaryGradient};
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: ${theme.spacing['2xl']} ${theme.spacing.lg};
   position: relative;
   overflow: hidden;
   
@@ -363,18 +364,36 @@ const LoginScreen: React.FC = () => {
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberEmail, setRememberEmail] = useState<boolean>(() => {
+    return localStorage.getItem('rememberEmail') === '1';
+  });
+  const [savedEmail, setSavedEmail] = useState<string>(() => {
+    return localStorage.getItem('savedEmail') || '';
+  });
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormData>();
+    setValue,
+  } = useForm<LoginFormData>({ defaultValues: { email: savedEmail } });
+
+  // Acceso rápido si ya está autenticado en almacenamiento local
+  // (la redirección real ocurre en rutas protegidas, esto es un CTA visible)
+  const quickEmail = savedEmail;
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
       const success = await login(data.email, data.password);
       if (success) {
+        if (rememberEmail) {
+          localStorage.setItem('rememberEmail', '1');
+          localStorage.setItem('savedEmail', data.email);
+        } else {
+          localStorage.removeItem('rememberEmail');
+          localStorage.removeItem('savedEmail');
+        }
         navigate('/swipe');
       }
     } finally {
@@ -384,6 +403,7 @@ const LoginScreen: React.FC = () => {
 
   return (
     <Container>
+      <BookshelfBackground />
       <BackButton onClick={() => navigate('/welcome')}>
         <ArrowLeft size={24} />
       </BackButton>
@@ -439,6 +459,27 @@ const LoginScreen: React.FC = () => {
             </PasswordToggle>
             {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
           </InputGroup>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, color: theme.colors.textSecondary }}>
+              <input
+                type="checkbox"
+                checked={rememberEmail}
+                onChange={(e) => setRememberEmail(e.target.checked)}
+                style={{ width: 18, height: 18 }}
+              />
+              Recordar correo
+            </label>
+            {quickEmail && (
+              <button
+                type="button"
+                onClick={() => setValue('email', quickEmail)}
+                style={{ background: 'transparent', color: theme.colors.primary, border: 0, cursor: 'pointer', fontWeight: 600 }}
+              >
+                Usar {quickEmail}
+              </button>
+            )}
+          </div>
 
           <LoginButton type="submit" disabled={isLoading} $loading={isLoading}>
             {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
