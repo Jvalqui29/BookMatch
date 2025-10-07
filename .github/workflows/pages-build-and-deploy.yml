@@ -1,26 +1,44 @@
+﻿name: pages build and deployment
 name: pages build and deployment
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
     steps:
-      - name: Checkout repository
+      - name: Checkout repository (no submodules)
         uses: actions/checkout@v4
         with:
           submodules: false
           fetch-depth: 0
+
+      - name: Prevent submodule init / recover BookMatch if gitlink
+        run: |
+          set -e
+          git submodule deinit --all || true
+          git submodule sync --recursive || true
+
+          if [ -f .gitmodules ]; then
+            git config -f .gitmodules --remove-section "submodule.BookMatch" || true
+          fi
+
+          if git ls-tree -r HEAD | grep -q "160000 .* BookMatch"; then
+            echo "Detected BookMatch as a gitlink. Attempting to checkout files from origin/main..."
+            git fetch origin main --depth=1 || true
+            git checkout origin/main -- BookMatch || true
+          else
+            echo "BookMatch not a gitlink or already present as files."
+          fi
 
       - name: Detect project directory
         id: detect
@@ -38,11 +56,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Diagnostic - Node & npm versions
-        run: |
-          node --version
-          npm --version
-
       - name: Install dependencies
         run: npm ci
         working-directory: ${{ steps.detect.outputs.PROJECT_DIR }}
@@ -52,17 +65,210 @@ jobs:
         working-directory: ${{ steps.detect.outputs.PROJECT_DIR }}
 
       - name: Upload production build for GitHub Pages
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ steps.detect.outputs.PROJECT_DIR }}/build
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
 
     steps:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v1
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      name: pages build and deployment
+
+      on:
+        push:
+          branches: [ main ]
+        workflow_dispatch:
+
+      jobs:
+        build:
+          runs-on: ubuntu-latest
+
+          permissions:
+            contents: read
+            pages: write
+            id-token: write
+
+          steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                submodules: false
+                fetch-depth: 0
+
+            - name: Prevent submodule init / recover BookMatch if gitlink
+              run: |
+                # Ensure any submodule config won't block the run
+                git submodule deinit --all || true
+                git submodule sync --recursive || true
+
+                # If .gitmodules exists try to remove the BookMatch entry (best-effort)
+                if [ -f .gitmodules ]; then
+                  git config -f .gitmodules --remove-section "submodule.BookMatch" || true
+                fi
+
+                # Detect whether BookMatch is a gitlink (mode 160000). If so, try to restore files from origin/main
+                if git ls-tree -r HEAD | grep -q "160000 .* BookMatch"; then
+                  echo "Detected BookMatch as a gitlink. Attempting to checkout files from origin/main..."
+                  name: pages build and deployment
+
+                  on:
+                    push:
+                      branches: [ main ]
+                    workflow_dispatch:
+
+                  jobs:
+                    build:
+                      runs-on: ubuntu-latest
+
+                      permissions:
+                        contents: read
+                        pages: write
+                        id-token: write
+
+                      steps:
+                        - name: Checkout repository
+                          uses: actions/checkout@v4
+                          with:
+                            submodules: false
+                            fetch-depth: 0
+
+                        - name: Prevent submodule init / recover BookMatch if gitlink
+                          run: |
+                            git submodule deinit --all || true
+                            git submodule sync --recursive || true
+
+                            if [ -f .gitmodules ]; then
+                              git config -f .gitmodules --remove-section "submodule.BookMatch" || true
+                            fi
+
+                            if git ls-tree -r HEAD | grep -q "160000 .* BookMatch"; then
+                              echo "Detected BookMatch as a gitlink. Attempting to checkout files from origin/main..."
+                              git fetch origin main --depth=1 || true
+                              git checkout origin/main -- BookMatch || true
+                            else
+                              echo "BookMatch not a gitlink or already present as files."
+                            fi
+
+                        - name: Detect project directory
+                          id: detect
+                          run: |
+                            if [ -f "./BookMatch/package.json" ]; then
+                              echo "PROJECT_DIR=BookMatch" >> $GITHUB_OUTPUT
+                            elif [ -f "./package.json" ]; then
+                              echo "PROJECT_DIR=." >> $GITHUB_OUTPUT
+                            else
+                              echo "PROJECT_DIR=." >> $GITHUB_OUTPUT
+                            fi
+
+                        - name: Setup Node.js
+                          uses: actions/setup-node@v4
+                          with:
+                            node-version: '20'
+
+                        - name: Diagnostic - Node & npm versions
+                          run: |
+                            node --version
+                            npm --version
+
+                        - name: Install dependencies
+                          run: npm ci
+                          working-directory: ${{ steps.detect.outputs.PROJECT_DIR }}
+
+                        - name: Build
+                          run: npm run build
+                          working-directory: ${{ steps.detect.outputs.PROJECT_DIR }}
+
+                        - name: Upload production build for GitHub Pages
+                          uses: actions/upload-pages-artifact@v3
+                          with:
+                            name: pages build and deployment
+
+                            on:
+                              push:
+                                branches: [ main ]
+                              workflow_dispatch:
+
+                            permissions:
+                              contents: read
+                              pages: write
+                              id-token: write
+
+                            jobs:
+                              build:
+                                runs-on: ubuntu-latest
+
+                                steps:
+                                  - name: Checkout repository
+                                    uses: actions/checkout@v4
+                                    with:
+                                      submodules: false
+                                      fetch-depth: 0
+
+                                  - name: Prevent submodule init / recover BookMatch if gitlink
+                                    run: |
+                                      git submodule deinit --all || true
+                                      git submodule sync --recursive || true
+
+                                      if [ -f .gitmodules ]; then
+                                        git config -f .gitmodules --remove-section "submodule.BookMatch" || true
+                                      fi
+
+                                      if git ls-tree -r HEAD | grep -q "160000 .* BookMatch"; then
+                                        echo "Detected BookMatch as a gitlink. Attempting to checkout files from origin/main..."
+                                        git fetch origin main --depth=1 || true
+                                        git checkout origin/main -- BookMatch || true
+                                      else
+                                        echo "BookMatch not a gitlink or already present as files."
+                                      fi
+
+                                  - name: Detect project directory
+                                    id: detect
+                                    run: |
+                                      if [ -f "./BookMatch/package.json" ]; then
+                                        echo "PROJECT_DIR=BookMatch" >> $GITHUB_OUTPUT
+                                      elif [ -f "./package.json" ]; then
+                                        echo "PROJECT_DIR=." >> $GITHUB_OUTPUT
+                                      else
+                                        echo "PROJECT_DIR=." >> $GITHUB_OUTPUT
+                                      fi
+
+                                  - name: Setup Node.js
+                                    uses: actions/setup-node@v4
+                                    with:
+                                      node-version: '20'
+
+                                  - name: Install dependencies
+                                    run: npm ci
+                                    working-directory: ${{ steps.detect.outputs.PROJECT_DIR }}
+
+                                  - name: Build
+                                    run: npm run build
+                                    working-directory: ${{ steps.detect.outputs.PROJECT_DIR }}
+
+                                  - name: Upload production build for GitHub Pages
+                                    uses: actions/upload-pages-artifact@v3
+                                    with:
+                                      path: ${{ steps.detect.outputs.PROJECT_DIR }}/build
+
+                              deploy:
+                                needs: build
+                                runs-on: ubuntu-latest
+
+                                steps:
+                                  - name: Deploy to GitHub Pages
+                                    uses: actions/deploy-pages@v1
