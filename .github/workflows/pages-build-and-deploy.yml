@@ -1,4 +1,4 @@
-﻿name: pages build and deployment
+name: Pages – build & deploy
 
 on:
   push:
@@ -10,10 +10,13 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository (no submodules)
         uses: actions/checkout@v4
@@ -25,11 +28,9 @@ jobs:
         run: |
           git submodule deinit --all || true
           git submodule sync --recursive || true
-
           if [ -f .gitmodules ]; then
             git config -f .gitmodules --remove-section "submodule.BookMatch" || true
           fi
-
           if git ls-tree -r HEAD | grep -q "160000 .* BookMatch"; then
             echo "Detected BookMatch as a gitlink. Attempting to checkout files from origin/main..."
             git fetch origin main --depth=1 || true
@@ -67,12 +68,8 @@ jobs:
           echo "GITHUB_RUN_ID=$GITHUB_RUN_ID"
           echo "Listing build directory contents:" 
           ls -la "${{ steps.detect.outputs.PROJECT_DIR }}/build" || true
-          echo "Querying artifacts for this run via Actions API (raw JSON)"
-          curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${GITHUB_RUN_ID}/artifacts" || true
 
-      - name: Upload production build for GitHub Pages
+      - name: Upload artifact for Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ steps.detect.outputs.PROJECT_DIR }}/build
@@ -80,7 +77,10 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v1
+        id: deploy
+        uses: actions/deploy-pages@v4
