@@ -1,0 +1,60 @@
+name: pages build and deployment
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Detect project directory
+        id: detect
+        run: |
+          if [ -f "./BookMatch/package.json" ]; then
+            echo "PROJECT_DIR=BookMatch" >> $GITHUB_OUTPUT
+          elif [ -f "./package.json" ]; then
+            echo "PROJECT_DIR=." >> $GITHUB_OUTPUT
+          else
+            echo "PROJECT_DIR=." >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ${{ steps.detect.outputs.PROJECT_DIR }}
+
+      - name: Build
+        run: npm run build
+        working-directory: ${{ steps.detect.outputs.PROJECT_DIR }}
+
+      - name: Upload production build for GitHub Pages
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ${{ steps.detect.outputs.PROJECT_DIR }}/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
