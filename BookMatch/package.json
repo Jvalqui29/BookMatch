@@ -1,0 +1,60 @@
+{
+  "name": "bookmatch",
+  "version": "1.0.0",
+  "description": "Una aplicación literaria para conectar lectores y hacer match con libros",
+  "main": "index.js",
+  "homepage": "https://jvalqui29.github.io/BookMatch",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "lint": "eslint src/",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  },
+  "dependencies": {
+    "@types/leaflet": "^1.9.3",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/styled-components": "^5.1.26",
+    "axios": "^1.6.0",
+    "framer-motion": "^10.12.0",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.263.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.43.0",
+    "react-hot-toast": "^2.4.0",
+    "react-leaflet": "^4.2.1",
+    "react-router-dom": "^6.8.0",
+    "react-scripts": "5.0.1",
+    "react-spring": "^9.7.0",
+    "styled-components": "^5.3.6",
+    "typescript": "^4.9.5"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.16.4",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "eslint": "^8.19.0",
+    "gh-pages": "^6.3.0",
+    "prettier": "^2.4.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
